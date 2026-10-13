@@ -9,8 +9,11 @@ spec:
     # Notre fork : c'est là qu'on commit, ArgoCD suit ce repo
     repoURL: https://github.com/Bilnaa/scalability.git
     targetRevision: master
-    # Overlay k3s -> images arm64 locales (importées dans k3s, voir notes.md)
-    path: kubernetes/k3s
+    # Chart Helm de l'appli -> ArgoCD fait le "helm template" lui-même
+    path: helm/kube-starter
+    helm:
+      valueFiles:
+        - values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: default

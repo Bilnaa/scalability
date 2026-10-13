@@ -1,5 +1,5 @@
 #!/bin/sh
-# Recrée le nœud k3s (conteneur Apple `container`) et redéploie toute l'appli
+# Recrée le nœud k3s (conteneur Apple `container`), installe ArgoCD et redéploie l'appli (chart Helm)
 # Usage : sh kubernetes/k3s/recreate-node.sh [cpus] [memory]   (défaut : 2 CPU / 4G)
 # Attention : le cluster est remis à zéro (aucun volume persistant -> données Postgres perdues)
 set -e
@@ -29,15 +29,14 @@ kubectl annotate ingressclass nginx ingressclass.kubernetes.io/is-default-class=
 kubectl -n ingress-nginx wait --for=condition=complete job --all --timeout=180s
 kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=180s
 
-# 4. Import des images arm64 buildées localement
-for i in kube-starter-api kube-starter-webapp; do
-  docker image inspect "${i}:local" >/dev/null 2>&1 || docker build --platform linux/arm64 -t "${i}:local" "$ROOT/applications/$i"
-  docker save "${i}:local" | container exec -i k3s-node ctr -n k8s.io images import -
-done
-
-# 5. Déploiement de l'appli
-kubectl apply -k "$ROOT/kubernetes/k3s"
-kubectl rollout status deploy/postgres-deployment deploy/api-deployment deploy/webapp-deployment --timeout=180s
+# 4. ArgoCD + Application -> déploie le chart helm/kube-starter depuis notre fork
+kubectl create namespace argocd
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl -n argocd rollout status deploy --timeout=300s
+kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=180s
+kubectl apply -f "$ROOT/kubernetes/argocd/argo-cd-k3s.yaml"
+until kubectl get deploy api-deployment >/dev/null 2>&1; do sleep 5; done
+kubectl rollout status deploy/postgres-deployment deploy/api-deployment deploy/webapp-deployment --timeout=300s
 
 echo
 echo "IP du nœud : $(container list | awk '/k3s-node/ {print $6}' | cut -d/ -f1)  (à mettre dans /etc/hosts pour myapp.local)"

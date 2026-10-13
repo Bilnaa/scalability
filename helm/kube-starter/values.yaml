@@ -1,0 +1,54 @@
+# Valeurs par défaut du chart -> injectées dans les templates via {{ .Values.xxx }}
+# On peut les surcharger : helm install ... -f mes-values.yaml  ou  --set api.replicas=3
+
+postgres:
+  image: postgres:14.24
+  database: messages
+  # Encodés en base64 dans le Secret par le template (b64enc)
+  user: kube
+  password: kstrong
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+api:
+  # Images arm64 buildées par la CI (.github/workflows/deploy.yml) -> le tag est mis à jour automatiquement
+  image:
+    repository: ghcr.io/bilnaa/kube-starter-api
+    tag: 3a0523f3607030c2b2ba611ec05cc1229d2e1768
+  replicas: 2 # Ignoré si l'autoscaling est activé (c'est le HPA qui gère)
+  # La JVM consomme ~170Mi au repos -> 128Mi/256Mi serait trop juste (OOMKilled)
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+webapp:
+  image:
+    repository: ghcr.io/bilnaa/kube-starter-webapp
+    tag: 3a0523f3607030c2b2ba611ec05cc1229d2e1768
+  replicas: 2
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: myapp.local

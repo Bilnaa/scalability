@@ -1,0 +1,6 @@
+apiVersion: v2 # v2 = Helm 3+
+name: kube-starter
+description: Appli kube-starter (webapp React + API Ktor + Postgres)
+type: application
+version: 0.1.0 # Version du chart (à incrémenter quand on modifie les templates)
+appVersion: "1.0.0" # Version de l'appli déployée (informatif)

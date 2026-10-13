@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    {{- include "kube-starter.labels" . | nindent 4 }}
+data:
+  postgres-url: r2dbc:postgresql://postgres-service:5432/{{ .Values.postgres.database }}

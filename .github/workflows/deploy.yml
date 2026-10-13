@@ -1,6 +1,6 @@
 # CI/CD : à chaque push du code des applis
 # 1. Build des images arm64 (nœud k3s sur Mac Apple Silicon) et push sur GitHub Container Registry
-# 2. Mise à jour du tag des images dans kubernetes/k3s/kustomization.yaml + commit
+# 2. Mise à jour du tag des images dans le values.yaml du chart Helm + commit
 # 3. ArgoCD détecte le commit et déploie la nouvelle version
 name: deploy
 
@@ -52,18 +52,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Mise à jour du tag des images
-        working-directory: kubernetes/k3s
         run: |
-          kustomize edit set image \
-            angelrafael/applications-kube-starter-api=${REGISTRY}/kube-starter-api:${GITHUB_SHA} \
-            angelrafael/applications-kube-starter-webapp=${REGISTRY}/kube-starter-webapp:${GITHUB_SHA}
+          # Remplace la ligne "tag:" qui suit chaque "repository:" de nos images
+          sed -i -E "/repository: ghcr.io\/bilnaa\/kube-starter-(api|webapp)$/{n;s/tag: .*/tag: ${GITHUB_SHA}/}" helm/kube-starter/values.yaml
 
       # Le push fait avec GITHUB_TOKEN ne redéclenche pas de workflow -> pas de boucle
       - name: Commit et push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add kubernetes/k3s/kustomization.yaml
+          git add helm/kube-starter/values.yaml
           git commit -m "deploy: images ${GITHUB_SHA::7}"
           git pull --rebase
           git push

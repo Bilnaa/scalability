@@ -84,25 +84,33 @@ http://myapp.local:8080/dashboard
 
 # k3s (Mac Apple Silicon, via `container`)
 
-Les images Docker Hub sont amd64 uniquement -> on les rebuild en arm64 et on les importe dans k3s
+Les images Docker Hub sont amd64 uniquement -> la CI GitHub Actions (`.github/workflows/deploy.yml`) build des images arm64 sur ghcr.io
 
 `export KUBECONFIG=~/.kube/k3s-apple.yaml`
 
-`kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.1/deploy/static/provider/cloud/deploy.yaml`
+`sh kubernetes/k3s/recreate-node.sh` -> (re)crée la VM k3s (2 CPU / 4 Go), installe ingress-nginx + ArgoCD et déploie l'appli
 
-`kubectl annotate ingressclass nginx ingressclass.kubernetes.io/is-default-class=true`
+Ajouter `<IP du nœud> myapp.local` dans `/etc/hosts` -> http://myapp.local/dashboard
 
-`docker build --platform linux/arm64 -t kube-starter-api:local applications/kube-starter-api`
+#### Déploiement auto
 
-`docker build --platform linux/arm64 -t kube-starter-webapp:local applications/kube-starter-webapp`
+Push du code dans `applications/` -> la CI build les images + met à jour les tags dans `helm/kube-starter/values.yaml` -> ArgoCD déploie
 
-`docker save kube-starter-api:local | container exec -i k3s-node ctr -n k8s.io images import -`
+Toujours faire `git pull` avant de commit (la CI pousse des commits sur master)
 
-`docker save kube-starter-webapp:local | container exec -i k3s-node ctr -n k8s.io images import -`
+# Helm
 
-`kubectl apply -k kubernetes/k3s`
+Chart de l'appli : `helm/kube-starter` (templates + `values.yaml`)
 
-Ajouter `192.168.64.3 myapp.local` dans `/etc/hosts` -> http://myapp.local/dashboard
+`helm lint helm/kube-starter` -> vérifie le chart
+
+`helm template kube-starter helm/kube-starter` -> affiche les manifests générés
+
+`helm template kube-starter helm/kube-starter --set api.autoscaling.enabled=true` -> surcharge une valeur
+
+`helm template kube-starter helm/kube-starter | kubectl diff -f -` -> compare avec ce qui tourne sur le cluster
+
+ArgoCD fait le `helm template` lui-même -> on ne fait pas de `helm install` (sinon double gestion Helm + ArgoCD)
 
 # Runner
 
@@ -154,7 +162,7 @@ Ajouter `192.168.64.3 myapp.local` dans `/etc/hosts` -> http://myapp.local/dashb
 
 `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d` -> décodage MDP sur Mac/Linux
 
-Sur k3s (Mac) : `kubectl apply -f kubernetes/argocd/argo-cd-k3s.yaml` -> suit notre fork + overlay `kubernetes/k3s`
+Sur k3s (Mac) : `kubectl apply -f kubernetes/argocd/argo-cd-k3s.yaml` -> suit notre fork + chart `helm/kube-starter`
 
 #### URL ArgoCD
 
