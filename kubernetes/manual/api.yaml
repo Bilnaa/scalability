@@ -7,7 +7,7 @@ metadata:
   labels: # Identifiant supplémentaire (non obigatoire au niveau du Deployment)
     app: api
 spec:
-  replicas: 1 # Ici on spécifie combien de Pods on veut
+  replicas: 2 # Ici on spécifie combien de Pods on veut
   selector: # Aide K8s à identifier les Pods appartenant à ce Deployment
     matchLabels:
       app: api

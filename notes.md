@@ -188,3 +188,20 @@ Argo CD : https://argo-cd.readthedocs.io/en/stable/
 Documentation officielle Argo CD Githun : https://github.com/argoproj/argo-cd/blob/master/docs/getting_started.md
 
 Helm Charts : https://helm.sh/docs/topics/charts/
+
+## Exemple architecture projet
+
+⚠️ Il s'agit juste d'un exemple, votre projet peut avoir une autre archi plus adaptée !
+
+```text
+mon-repo/scalability
+├── /dev
+│   ├── name-space-dev.yaml
+│   ├── ma-conf-dev.yaml
+│   └── mon-app-dev.yaml
+│
+└── /prd
+    ├── name-space-prd.yaml
+    ├── ma-conf-prd.yaml
+    └── mon-app-prd.yaml
+```
