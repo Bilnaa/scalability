@@ -1,6 +1,6 @@
 # Overlay pour le cluster k3s local (Mac Apple Silicon -> nœud arm64)
-# Les images Docker Hub sont amd64 uniquement : on utilise des images buildées localement
-# et importées dans le containerd de k3s (voir notes.md)
+# Les images Docker Hub sont amd64 uniquement : on utilise des images arm64
+# buildées par la CI (.github/workflows/deploy.yml) qui met à jour les tags ci-dessous
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
