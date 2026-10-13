@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application # Variante de argo-cd.yaml pour le cluster k3s local (Mac Apple Silicon)
+metadata:
+  name: argo-cd-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Notre fork : c'est là qu'on commit, ArgoCD suit ce repo
+    repoURL: https://github.com/Bilnaa/scalability.git
+    targetRevision: master
+    # Overlay k3s -> images arm64 locales (importées dans k3s, voir notes.md)
+    path: kubernetes/k3s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false

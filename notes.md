@@ -152,6 +152,10 @@ Ajouter `192.168.64.3 myapp.local` dans `/etc/hosts` -> http://myapp.local/dashb
 
 `kubectl get applications -n argocd`
 
+`kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d` -> décodage MDP sur Mac/Linux
+
+Sur k3s (Mac) : `kubectl apply -f kubernetes/argocd/argo-cd-k3s.yaml` -> suit notre fork + overlay `kubernetes/k3s`
+
 #### URL ArgoCD
 
 https://localhost:9090
