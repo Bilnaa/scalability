@@ -82,6 +82,28 @@ A éviter : `minikube start --nodes 10` -> très gourmande en recourses, l'ordi 
 
 http://myapp.local:8080/dashboard
 
+# k3s (Mac Apple Silicon, via `container`)
+
+Les images Docker Hub sont amd64 uniquement -> on les rebuild en arm64 et on les importe dans k3s
+
+`export KUBECONFIG=~/.kube/k3s-apple.yaml`
+
+`kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.1/deploy/static/provider/cloud/deploy.yaml`
+
+`kubectl annotate ingressclass nginx ingressclass.kubernetes.io/is-default-class=true`
+
+`docker build --platform linux/arm64 -t kube-starter-api:local applications/kube-starter-api`
+
+`docker build --platform linux/arm64 -t kube-starter-webapp:local applications/kube-starter-webapp`
+
+`docker save kube-starter-api:local | container exec -i k3s-node ctr -n k8s.io images import -`
+
+`docker save kube-starter-webapp:local | container exec -i k3s-node ctr -n k8s.io images import -`
+
+`kubectl apply -k kubernetes/k3s`
+
+Ajouter `192.168.64.3 myapp.local` dans `/etc/hosts` -> http://myapp.local/dashboard
+
 # Runner
 
 ### Installation

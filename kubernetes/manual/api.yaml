@@ -37,14 +37,16 @@ spec:
                 configMapKeyRef:
                   name: postgres-config
                   key: postgres-url
-          # Exemple de réplication de pods en fonction des ressources
-          # resources:
-          #   requests:
-          #     cpu: "100m"
-          #     memory: "128Mi"
-          #   limits:
-          #     cpu: "500m"
-          #     memory: "256Mi"
+          # Ressources réservées (requests) et maximum autorisé (limits) pour le Pod
+          # Nécessaire pour que le HPA puisse calculer un % d'utilisation CPU
+          # La JVM consomme ~170Mi au repos -> 128Mi/256Mi serait trop juste (OOMKilled)
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
 ---
 # Service
 apiVersion: v1
